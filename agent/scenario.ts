@@ -65,25 +65,77 @@ export function permission_request_hook(trace_flag: boolean, arg_vals: boolean) 
 }
 
 export function ad_hook() {
-    let arg_target_classes = [
+    let google_target_classes = [
         'com.google.android.gms.ads.AdRequest$Builder',
-        'com.mopub.common.AdUrlGenerator'
+        'com.google.android.gms.ads.doubleclick.PublisherAdRequest$Builder',
+        'com.google.android.gms.ads.search.SearchAdRequest$Builder',
+        // 特殊混淆情况
+        'com.google.android.gms.ads.c$a',
+        'com.google.android.gms.ads.d$a',
     ]
-    arg_target_classes.forEach((clazz) => {
-        let methods = h.get_class_method_names(clazz);
-        methods.forEach(m => {
-            h.hook_target_method(clazz, m, 'android.location.Location', '', true, false);
+    google_target_classes.forEach((google_target_class) => {
+        h.get_class_method_names(google_target_class).forEach((method) => {
+            h.hook_target_method(google_target_class, method, 'android.location.Location', '', true, false)
+            if (method == 'setGender' || method == 'setBirthday') {
+                h.hook_target_method(google_target_class, method, '', '', true, false)
+            }
         })
     })
 
-    let ret_target_classes = [
-        'com.amazon.device.ads.AdLocation'
+    // facebook 没找到地理位置接口
+    // let fb_target_class = ''
+
+    let mopub_target_class = 'com.mopub.common.AdUrlGenerator'
+    h.get_class_method_names(mopub_target_class).forEach((method) => {
+        h.hook_target_method(mopub_target_class, method, 'android.location.Location', 'void', true, false)
+    })
+
+    //旧版本Mopub没有带参数的setLocation方法，可以用旧版本的getLastKnownLocation判断，和新版本的不同
+    let mopub_target_class_old = 'com.mopub.common.LocationService'
+    h.get_class_method_names(mopub_target_class_old).forEach((method) => {
+        h.hook_target_method(mopub_target_class_old, method, 'android.content.Context',
+            'android.location.Location', true, false)
+    })
+
+
+    let amazon_target_classes = [
+        'com.amazon.device.ads.AdLocation',
+        'com.amazon.device.ads.DtbGeoLocation',
     ]
-    ret_target_classes.forEach((clazz) => {
-        let methods = h.get_class_method_names(clazz);
-        methods.forEach(m => {
-            h.hook_target_method(clazz, m, '', 'android.location.Location', true, false);
+    amazon_target_classes.forEach((amazon_target_class) => {
+        h.get_class_method_names(amazon_target_class).forEach((method) => {
+            h.hook_target_method(amazon_target_class, method, 'void', 'android.location.Location', true, false)
         })
+    })
+
+    // flurry本身sdk就已经混淆了
+    let flurry_target_class = 'com.flurry.sdk.ads.cf'
+    h.get_class_method_names(flurry_target_class).forEach((method) => {
+        h.hook_target_method(flurry_target_class, method, '', 'android.location.Location', true, false)
+    })
+
+    let inmobi_target_class = 'com.inmobi.sdk.InMobiSdk'
+    h.get_class_method_names(inmobi_target_class).forEach((method) => {
+        h.hook_target_method(inmobi_target_class, method, 'android.location.Location', '', true, false)
+        //setLocationWithCityStateCountry
+        h.hook_target_method(inmobi_target_class, method, 'java.lang.String,java.lang.String,java.lang.String', '', true, false)
+    })
+
+    let adcolony_target_class = 'com.adcolony.sdk.AdColonyUserMetadata'
+    h.get_class_method_names(adcolony_target_class).forEach((method) => {
+        h.hook_target_method(adcolony_target_class, method, 'android.location.Location', '', true, false)
+        if (method == 'setUserGender' || method == 'setUserAge') {
+                h.hook_target_method(adcolony_target_class, method, '', '', true, false)
+            }
+    })
+
+    // appLovin sdk类名混淆，并且本身用的好像是WebSettings的setGeolocationEnabled
+    // let appLovin_target_class = ''
+
+    // appodeal sdk类名混淆，并且用的比较少 都是bm
+    let appodeal_target_class = 'com.appodeal.ads.bm'
+    h.get_class_method_names(appodeal_target_class).forEach((method) => {
+        h.hook_target_method(appodeal_target_class, method, '', 'android.location.Location', true, false)
     })
 }
 

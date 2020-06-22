@@ -9,13 +9,17 @@ export namespace hooking {
                 clazz_instance = Java.use(clazz_instance);
             }
             let method_names: string[] = clazz_instance.class.getDeclaredMethods().map((method : any) => {
-                let m: string = method.toGenericString();
-                while (m.includes("<")) { m = m.replace(/<.*?>/g, ""); }
-                if (m.indexOf(" throws ") !== -1) { m = m.substring(0, m.indexOf(" throws ")); }
-                m = m.slice(m.lastIndexOf(" "));
-                m = m.replace(` ${clazz_instance.class.getName()}.`, "");
-                return m.split("(")[0];
+                // let m: string = method.toGenericString();
+                // while (m.includes("<")) { m = m.replace(/<.*?>/g, ""); }
+                // if (m.indexOf(" throws ") !== -1) { m = m.substring(0, m.indexOf(" throws ")); }
+                // m = m.slice(m.lastIndexOf(" "));
+                // m = m.replace(` ${clazz_instance.class.getName()}.`, "");
+                // return m.split("(")[0];
+                return method.getName();
+            }).filter((value:any, index:any, self:any) => {
+                return self.indexOf(value) === index;
             });
+
             return method_names;
         } catch(e) {
             return [];
@@ -74,6 +78,10 @@ export namespace hooking {
             clazz_instance[method_name].overloads.forEach((method: any) => {
                 let same_flag: boolean = true;
                 let args_string: string = method.argumentTypes.map((arg:any) => arg.className).join(',');
+                //空入参的target方法入参写 ‘void’
+                if (args_string == '') {
+                    args_string = 'void'
+                }
                 let return_string: string = method.returnType.className.toString();
                 if (arg_types != '' && arg_types != args_string) {
                     same_flag = false;

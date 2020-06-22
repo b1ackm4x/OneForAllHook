@@ -97,7 +97,7 @@ class CallerHook:
             signal.signal(signal.SIGINT, quit)
             signal.signal(signal.SIGTERM, quit)
             # 加载Frida
-            with open(script_path) as f:
+            with open(script_path, encoding='utf-8') as f:
                 jscode = f.read()
             self.process = frida.get_usb_device().attach(self.package_name)
             self.process.enable_debugger()
@@ -121,7 +121,7 @@ class CallerHook:
             signal.signal(signal.SIGINT, quit)
             signal.signal(signal.SIGTERM, quit)
             # 加载Frida
-            with open(script_path) as f:
+            with open(script_path, encoding='utf-8') as f:
                 jscode = f.read()
 
             device = frida.get_usb_device()
@@ -152,6 +152,7 @@ if __name__ == "__main__":
     package_name = sys.argv[1]
     ch = CallerHook(package_name, os.path.join('log'))
     ch.start_hook(os.path.join('_agent.js'))
+    # ch.run_and_start_hook(os.path.join('_agent.js'))
     sys.stdin.read()
     ch.stop_hook()
 
